@@ -2,15 +2,26 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TV Search</title>
+<title>TV Duck Search</title>
 <style>
-body{background:#111;color:white;font-family:Arial;text-align:center;}
-#query{font-size:26px;margin:20px;min-height:40px;border:2px solid #444;padding:10px;}
-.key, .result{
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+#query{
+    font-size:26px;
+    margin:20px;
+    min-height:40px;
+    border:2px solid #444;
+    padding:10px;
+}
+.key{
     display:inline-block;
-    width:70px;
-    margin:5px;
-    padding:15px;
+    width:65px;
+    margin:4px;
+    padding:14px;
     background:#222;
     border:3px solid #444;
     font-size:20px;
@@ -18,6 +29,11 @@ body{background:#111;color:white;font-family:Arial;text-align:center;}
 .result{
     display:block;
     width:80%;
+    margin:10px auto;
+    padding:16px;
+    font-size:20px;
+    background:#222;
+    border:3px solid #444;
 }
 .focused{
     border:3px solid red !important;
@@ -27,12 +43,13 @@ body{background:#111;color:white;font-family:Arial;text-align:center;}
 </head>
 <body>
 
-<h2>TV Search</h2>
+<h2>DuckDuckGo TV Search</h2>
+
 <div id="query"></div>
 
 <div id="keyboard"></div>
 
-<button id="searchBtn">SEARCH</button>
+<div class="result" id="searchBtn">SEARCH</div>
 
 <div id="results"></div>
 
@@ -80,8 +97,6 @@ function rebuildElements(){
     var keys=document.getElementsByClassName("key");
     for(var i=0;i<keys.length;i++) elements.push(keys[i]);
     elements.push(document.getElementById("searchBtn"));
-    var res=document.getElementsByClassName("result");
-    for(var i=0;i<res.length;i++) elements.push(res[i]);
     updateFocus();
 }
 
@@ -114,20 +129,8 @@ document.onkeydown=function(e){
 };
 
 document.getElementById("searchBtn").onclick=function(){
-
-    var results=document.getElementById("results");
-    results.innerHTML="";
-
-    // Вместо fetch — открываем google lite в кнопках
-    var btn=document.createElement("div");
-    btn.className="result";
-    btn.innerHTML="Open Google Results";
-    btn.onclick=function(){
-        window.location="https://www.google.com/search?q="+encodeURIComponent(query)+"&igu=1";
-    };
-    results.appendChild(btn);
-
-    rebuildElements();
+    if(query.length==0) return;
+    window.location="https://lite.duckduckgo.com/lite/?q="+encodeURIComponent(query);
 };
 
 </script>
