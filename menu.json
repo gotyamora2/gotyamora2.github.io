@@ -1,0 +1,14 @@
+{
+  "type": "list",
+  "headline": "Video Hub",
+  "items": [
+    {
+      "title": "Invidious",
+      "action": "link:https://yewtu.be"
+    },
+    {
+      "title": "Piped",
+      "action": "link:https://piped.video"
+    }
+  ]
+}
