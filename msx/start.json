@@ -1,5 +1,5 @@
 {
   "name": "MY_MSX",
   "version": "1.0",
-  "menu": "https://gotyamora2.github.io/msx/menu.json"
+  "parameter": "menu:https://gotyamora2.github.io/msx"
 }
