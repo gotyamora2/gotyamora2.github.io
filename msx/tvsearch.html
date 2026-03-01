@@ -6,106 +6,188 @@
 <style>
 body{
     background:#111;
-    color:white;
     font-family:Arial;
+    color:white;
     text-align:center;
 }
-input{
-    width:80%;
-    padding:15px;
-    font-size:22px;
+#query{
+    font-size:28px;
     margin:20px;
+    min-height:40px;
+    border:2px solid #444;
+    padding:10px;
 }
-button{
-    display:block;
-    width:80%;
-    margin:10px auto;
-    padding:20px;
-    font-size:20px;
+.key{
+    display:inline-block;
+    width:60px;
+    margin:5px;
+    padding:15px;
     background:#222;
-    color:white;
     border:3px solid #444;
+    font-size:22px;
 }
 .focused{
     border:3px solid red !important;
     background:#333 !important;
+}
+#results button{
+    display:block;
+    width:80%;
+    margin:10px auto;
+    padding:15px;
+    font-size:20px;
+    background:#222;
+    color:white;
+    border:3px solid #444;
 }
 </style>
 </head>
 <body>
 
 <h2>TV Search</h2>
-<input id="q" placeholder="Введите запрос..." />
-<button id="searchBtn">🔎 Найти</button>
+
+<div id="query"></div>
+
+<div id="keyboard"></div>
+
+<button id="searchBtn">🔎 SEARCH</button>
 
 <div id="results"></div>
 
 <script>
 
-var focusIndex = 0;
+var query = "";
 var focusables = [];
+var index = 0;
 
-function setFocus(){
-    for(var i=0;i<focusables.length;i++){
-        focusables[i].className="";
-    }
-    if(focusables[focusIndex]){
-        focusables[focusIndex].className="focused";
-        focusables[focusIndex].focus();
-    }
+var keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+var keyboardDiv = document.getElementById("keyboard");
+
+for(var i=0;i<keys.length;i++){
+    var key=document.createElement("div");
+    key.className="key";
+    key.innerText=keys[i];
+    key.onclick=(function(letter){
+        return function(){
+            query+=letter;
+            updateQuery();
+        }
+    })(keys[i]);
+    keyboardDiv.appendChild(key);
+}
+
+var spaceKey=document.createElement("div");
+spaceKey.className="key";
+spaceKey.innerText="SPACE";
+spaceKey.onclick=function(){
+    query+=" ";
+    updateQuery();
+};
+keyboardDiv.appendChild(spaceKey);
+
+var backKey=document.createElement("div");
+backKey.className="key";
+backKey.innerText="←";
+backKey.onclick=function(){
+    query=query.slice(0,-1);
+    updateQuery();
+};
+keyboardDiv.appendChild(backKey);
+
+function updateQuery(){
+    document.getElementById("query").innerText=query;
 }
 
 function updateFocusables(){
-    focusables = document.querySelectorAll("input,button,a");
-    setFocus();
+    focusables=document.querySelectorAll(".key,#searchBtn,#results button");
+    updateFocus();
 }
 
-document.onkeydown = function(e){
-    var code = e.keyCode || e.which;
+function updateFocus(){
+    for(var i=0;i<focusables.length;i++){
+        focusables[i].classList.remove("focused");
+    }
+    if(focusables[index]){
+        focusables[index].classList.add("focused");
+    }
+}
 
-    if(code==40){ // down
-        focusIndex++;
-        if(focusIndex>=focusables.length) focusIndex=0;
-        setFocus();
+updateFocusables();
+
+document.onkeydown=function(e){
+    var code=e.keyCode||e.which;
+
+    var UP=38,DOWN=40,LEFT=37,RIGHT=39,ENTER=13;
+    var TV_UP=29460,TV_DOWN=29461,TV_ENTER=29443;
+
+    if(code==RIGHT){
+        index++;
+        if(index>=focusables.length) index=0;
+        updateFocus();
         return false;
     }
 
-    if(code==38){ // up
-        focusIndex--;
-        if(focusIndex<0) focusIndex=focusables.length-1;
-        setFocus();
+    if(code==LEFT){
+        index--;
+        if(index<0) index=focusables.length-1;
+        updateFocus();
         return false;
     }
 
-    if(code==13){ // enter
-        focusables[focusIndex].click();
+    if(code==DOWN||code==TV_DOWN){
+        index+=6;
+        if(index>=focusables.length) index=focusables.length-1;
+        updateFocus();
+        return false;
+    }
+
+    if(code==UP||code==TV_UP){
+        index-=6;
+        if(index<0) index=0;
+        updateFocus();
+        return false;
+    }
+
+    if(code==ENTER||code==TV_ENTER){
+        focusables[index].click();
         return false;
     }
 };
 
-document.getElementById("searchBtn").onclick = function(){
-    var query=document.getElementById("q").value;
+document.getElementById("searchBtn").onclick=function(){
+
+    var resultsDiv=document.getElementById("results");
+    resultsDiv.innerHTML="Loading...";
+
     fetch("https://api.allorigins.win/raw?url=https://lite.duckduckgo.com/lite/?q="+encodeURIComponent(query))
     .then(res=>res.text())
     .then(html=>{
-        var div=document.createElement("div");
-        div.innerHTML=html;
-        var links=div.querySelectorAll("a");
-        var resultsDiv=document.getElementById("results");
+
+        var temp=document.createElement("div");
+        temp.innerHTML=html;
+        var links=temp.querySelectorAll("a");
+
         resultsDiv.innerHTML="";
-        for(var i=0;i<links.length && i<10;i++){
+
+        for(var i=0;i<links.length&&i<8;i++){
+            if(!links[i].href) continue;
+
             var btn=document.createElement("button");
             btn.innerText=links[i].innerText;
             btn.onclick=(function(url){
-                return function(){ window.location=url; }
+                return function(){
+                    window.location=url;
+                }
             })(links[i].href);
+
             resultsDiv.appendChild(btn);
         }
+
+        index=0;
         updateFocusables();
     });
 };
-
-updateFocusables();
 
 </script>
 
