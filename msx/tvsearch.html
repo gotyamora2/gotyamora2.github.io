@@ -4,116 +4,97 @@
 <meta charset="UTF-8">
 <title>TV Search</title>
 <style>
-body{
-    background:#111;
-    font-family:Arial;
-    color:white;
-    text-align:center;
-}
-#query{
-    font-size:28px;
-    margin:20px;
-    min-height:40px;
-    border:2px solid #444;
-    padding:10px;
-}
-.key{
+body{background:#111;color:white;font-family:Arial;text-align:center;}
+#query{font-size:26px;margin:20px;min-height:40px;border:2px solid #444;padding:10px;}
+.key, .result{
     display:inline-block;
-    width:60px;
+    width:70px;
     margin:5px;
     padding:15px;
     background:#222;
     border:3px solid #444;
-    font-size:22px;
+    font-size:20px;
+}
+.result{
+    display:block;
+    width:80%;
 }
 .focused{
     border:3px solid red !important;
     background:#333 !important;
-}
-#results button{
-    display:block;
-    width:80%;
-    margin:10px auto;
-    padding:15px;
-    font-size:20px;
-    background:#222;
-    color:white;
-    border:3px solid #444;
 }
 </style>
 </head>
 <body>
 
 <h2>TV Search</h2>
-
 <div id="query"></div>
 
 <div id="keyboard"></div>
 
-<button id="searchBtn">🔎 SEARCH</button>
+<button id="searchBtn">SEARCH</button>
 
 <div id="results"></div>
 
 <script>
 
-var query = "";
-var focusables = [];
-var index = 0;
+var query="";
+var index=0;
+var elements=[];
 
-var keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+var keys="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-var keyboardDiv = document.getElementById("keyboard");
+var keyboard=document.getElementById("keyboard");
 
 for(var i=0;i<keys.length;i++){
-    var key=document.createElement("div");
-    key.className="key";
-    key.innerText=keys[i];
-    key.onclick=(function(letter){
+    var k=document.createElement("div");
+    k.className="key";
+    k.innerHTML=keys[i];
+    k.onclick=(function(letter){
         return function(){
             query+=letter;
             updateQuery();
         }
     })(keys[i]);
-    keyboardDiv.appendChild(key);
+    keyboard.appendChild(k);
 }
 
-var spaceKey=document.createElement("div");
-spaceKey.className="key";
-spaceKey.innerText="SPACE";
-spaceKey.onclick=function(){
-    query+=" ";
-    updateQuery();
-};
-keyboardDiv.appendChild(spaceKey);
+var space=document.createElement("div");
+space.className="key";
+space.innerHTML="_";
+space.onclick=function(){ query+=" "; updateQuery(); };
+keyboard.appendChild(space);
 
-var backKey=document.createElement("div");
-backKey.className="key";
-backKey.innerText="←";
-backKey.onclick=function(){
-    query=query.slice(0,-1);
-    updateQuery();
-};
-keyboardDiv.appendChild(backKey);
+var back=document.createElement("div");
+back.className="key";
+back.innerHTML="←";
+back.onclick=function(){ query=query.slice(0,-1); updateQuery(); };
+keyboard.appendChild(back);
 
 function updateQuery(){
-    document.getElementById("query").innerText=query;
+    document.getElementById("query").innerHTML=query;
 }
 
-function updateFocusables(){
-    focusables=document.querySelectorAll(".key,#searchBtn,#results button");
+function rebuildElements(){
+    elements=[];
+    var keys=document.getElementsByClassName("key");
+    for(var i=0;i<keys.length;i++) elements.push(keys[i]);
+    elements.push(document.getElementById("searchBtn"));
+    var res=document.getElementsByClassName("result");
+    for(var i=0;i<res.length;i++) elements.push(res[i]);
     updateFocus();
 }
 
 function updateFocus(){
-    for(var i=0;i<focusables.length;i++){
-        focusables[i].classList.remove("focused");
+    for(var i=0;i<elements.length;i++){
+        elements[i].className=elements[i].className.replace(" focused","");
     }
-    if(focusables[index]){
-        focusables[index].classList.add("focused");
+    if(elements[index]){
+        elements[index].className+=" focused";
     }
 }
 
-updateFocusables();
+rebuildElements();
 
 document.onkeydown=function(e){
     var code=e.keyCode||e.which;
@@ -121,72 +102,32 @@ document.onkeydown=function(e){
     var UP=38,DOWN=40,LEFT=37,RIGHT=39,ENTER=13;
     var TV_UP=29460,TV_DOWN=29461,TV_ENTER=29443;
 
-    if(code==RIGHT){
-        index++;
-        if(index>=focusables.length) index=0;
-        updateFocus();
-        return false;
-    }
-
-    if(code==LEFT){
-        index--;
-        if(index<0) index=focusables.length-1;
-        updateFocus();
-        return false;
-    }
-
-    if(code==DOWN||code==TV_DOWN){
-        index+=6;
-        if(index>=focusables.length) index=focusables.length-1;
-        updateFocus();
-        return false;
-    }
-
-    if(code==UP||code==TV_UP){
-        index-=6;
-        if(index<0) index=0;
-        updateFocus();
-        return false;
-    }
+    if(code==RIGHT){ index++; if(index>=elements.length) index=0; updateFocus(); return false; }
+    if(code==LEFT){ index--; if(index<0) index=elements.length-1; updateFocus(); return false; }
+    if(code==DOWN||code==TV_DOWN){ index+=6; if(index>=elements.length) index=elements.length-1; updateFocus(); return false; }
+    if(code==UP||code==TV_UP){ index-=6; if(index<0) index=0; updateFocus(); return false; }
 
     if(code==ENTER||code==TV_ENTER){
-        focusables[index].click();
+        if(elements[index] && elements[index].onclick) elements[index].onclick();
         return false;
     }
 };
 
 document.getElementById("searchBtn").onclick=function(){
 
-    var resultsDiv=document.getElementById("results");
-    resultsDiv.innerHTML="Loading...";
+    var results=document.getElementById("results");
+    results.innerHTML="";
 
-    fetch("https://api.allorigins.win/raw?url=https://lite.duckduckgo.com/lite/?q="+encodeURIComponent(query))
-    .then(res=>res.text())
-    .then(html=>{
+    // Вместо fetch — открываем google lite в кнопках
+    var btn=document.createElement("div");
+    btn.className="result";
+    btn.innerHTML="Open Google Results";
+    btn.onclick=function(){
+        window.location="https://www.google.com/search?q="+encodeURIComponent(query)+"&igu=1";
+    };
+    results.appendChild(btn);
 
-        var temp=document.createElement("div");
-        temp.innerHTML=html;
-        var links=temp.querySelectorAll("a");
-
-        resultsDiv.innerHTML="";
-
-        for(var i=0;i<links.length&&i<8;i++){
-            if(!links[i].href) continue;
-
-            var btn=document.createElement("button");
-            btn.innerText=links[i].innerText;
-            btn.onclick=(function(url){
-                return function(){
-                    window.location=url;
-                }
-            })(links[i].href);
-
-            resultsDiv.appendChild(btn);
-        }
-
-        index=0;
-        updateFocusables();
-    });
+    rebuildElements();
 };
 
 </script>
