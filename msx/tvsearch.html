@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TV Search</title>
+<style>
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+input{
+    width:80%;
+    padding:15px;
+    font-size:22px;
+    margin:20px;
+}
+button{
+    display:block;
+    width:80%;
+    margin:10px auto;
+    padding:20px;
+    font-size:20px;
+    background:#222;
+    color:white;
+    border:3px solid #444;
+}
+.focused{
+    border:3px solid red !important;
+    background:#333 !important;
+}
+</style>
+</head>
+<body>
+
+<h2>TV Search</h2>
+<input id="q" placeholder="Введите запрос..." />
+<button id="searchBtn">🔎 Найти</button>
+
+<div id="results"></div>
+
+<script>
+
+var focusIndex = 0;
+var focusables = [];
+
+function setFocus(){
+    for(var i=0;i<focusables.length;i++){
+        focusables[i].className="";
+    }
+    if(focusables[focusIndex]){
+        focusables[focusIndex].className="focused";
+        focusables[focusIndex].focus();
+    }
+}
+
+function updateFocusables(){
+    focusables = document.querySelectorAll("input,button,a");
+    setFocus();
+}
+
+document.onkeydown = function(e){
+    var code = e.keyCode || e.which;
+
+    if(code==40){ // down
+        focusIndex++;
+        if(focusIndex>=focusables.length) focusIndex=0;
+        setFocus();
+        return false;
+    }
+
+    if(code==38){ // up
+        focusIndex--;
+        if(focusIndex<0) focusIndex=focusables.length-1;
+        setFocus();
+        return false;
+    }
+
+    if(code==13){ // enter
+        focusables[focusIndex].click();
+        return false;
+    }
+};
+
+document.getElementById("searchBtn").onclick = function(){
+    var query=document.getElementById("q").value;
+    fetch("https://api.allorigins.win/raw?url=https://lite.duckduckgo.com/lite/?q="+encodeURIComponent(query))
+    .then(res=>res.text())
+    .then(html=>{
+        var div=document.createElement("div");
+        div.innerHTML=html;
+        var links=div.querySelectorAll("a");
+        var resultsDiv=document.getElementById("results");
+        resultsDiv.innerHTML="";
+        for(var i=0;i<links.length && i<10;i++){
+            var btn=document.createElement("button");
+            btn.innerText=links[i].innerText;
+            btn.onclick=(function(url){
+                return function(){ window.location=url; }
+            })(links[i].href);
+            resultsDiv.appendChild(btn);
+        }
+        updateFocusables();
+    });
+};
+
+updateFocusables();
+
+</script>
+
+</body>
+</html>
