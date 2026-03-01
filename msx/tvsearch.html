@@ -2,13 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TV Duck Search</title>
+<title>TV Search</title>
 <style>
 body{
     background:#111;
     color:white;
     font-family:Arial;
     text-align:center;
+    margin:0;
 }
 #query{
     font-size:26px;
@@ -17,7 +18,7 @@ body{
     border:2px solid #444;
     padding:10px;
 }
-.key{
+.key, .result, #searchBtn{
     display:inline-block;
     width:60px;
     margin:4px;
@@ -26,9 +27,23 @@ body{
     border:3px solid #444;
     font-size:18px;
 }
+#searchBtn{
+    width:200px;
+}
+.result{
+    display:block;
+    width:90%;
+    margin:10px auto;
+}
 .focused{
     border:3px solid red !important;
     background:#333 !important;
+}
+#resultsFrame{
+    width:100%;
+    height:60vh;
+    border:0;
+    display:none;
 }
 </style>
 </head>
@@ -38,13 +53,17 @@ body{
 
 <div id="query"></div>
 <div id="keyboard"></div>
-<div class="key" id="searchBtn" style="width:200px;">SEARCH</div>
+<div id="searchBtn">SEARCH</div>
+
+<iframe id="resultsFrame"></iframe>
 
 <script>
 
 var query="";
 var index=0;
 var elements=[];
+var mode="keyboard"; // keyboard or results
+
 var keys="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 var keyboard=document.getElementById("keyboard");
 
@@ -79,8 +98,10 @@ function updateQuery(){
 
 function rebuildElements(){
     elements=[];
-    var all=document.getElementsByClassName("key");
-    for(var i=0;i<all.length;i++) elements.push(all[i]);
+    if(mode=="keyboard"){
+        var all=document.querySelectorAll(".key, #searchBtn");
+        for(var i=0;i<all.length;i++) elements.push(all[i]);
+    }
     index=0;
     updateFocus();
 }
@@ -97,68 +118,48 @@ function updateFocus(){
 document.onkeydown=function(e){
     var code=e.keyCode||e.which;
 
-    var UP=38,DOWN=40,LEFT=37,RIGHT=39,ENTER=13;
-    var TV_UP=29460,TV_DOWN=29461,TV_ENTER=29443;
+    var UP=38,DOWN=40,LEFT=37,RIGHT=39,ENTER=13,RETURN=10009;
 
-    if(code==RIGHT){ index++; if(index>=elements.length) index=0; updateFocus(); return false; }
-    if(code==LEFT){ index--; if(index<0) index=elements.length-1; updateFocus(); return false; }
-    if(code==DOWN||code==TV_DOWN){ index+=6; if(index>=elements.length) index=elements.length-1; updateFocus(); return false; }
-    if(code==UP||code==TV_UP){ index-=6; if(index<0) index=0; updateFocus(); return false; }
+    if(mode=="keyboard"){
 
-    if(code==ENTER||code==TV_ENTER){
-        if(elements[index] && elements[index].onclick) elements[index].onclick();
-        return false;
+        if(code==RIGHT){ index++; if(index>=elements.length) index=0; updateFocus(); return false; }
+        if(code==LEFT){ index--; if(index<0) index=elements.length-1; updateFocus(); return false; }
+        if(code==DOWN){ index+=6; if(index>=elements.length) index=elements.length-1; updateFocus(); return false; }
+        if(code==UP){ index-=6; if(index<0) index=0; updateFocus(); return false; }
+
+        if(code==ENTER){
+            if(elements[index] && elements[index].onclick) elements[index].onclick();
+            return false;
+        }
+
+    } else if(mode=="results"){
+
+        var frame=document.getElementById("resultsFrame").contentWindow;
+
+        if(code==DOWN){ frame.scrollBy(0,80); return false; }
+        if(code==UP){ frame.scrollBy(0,-80); return false; }
+
+        if(code==ENTER){
+            // позволяем стандартный клик внутри iframe
+            return true;
+        }
+
+        if(code==RETURN){
+            mode="keyboard";
+            document.getElementById("resultsFrame").style.display="none";
+            rebuildElements();
+            return false;
+        }
     }
 };
 
 document.getElementById("searchBtn").onclick=function(){
-
     if(query.length==0) return;
 
-    document.body.innerHTML = `
-    <style>
-    body{margin:0;background:black}
-    #frame{width:100%;height:100%;border:0}
-    #cursor{
-        position:fixed;
-        left:0;
-        top:0;
-        width:100%;
-        height:60px;
-        border:4px solid red;
-        pointer-events:none;
-        z-index:9999;
-    }
-    </style>
-
-    <div id="cursor"></div>
-    <iframe id="frame"
-        src="https://lite.duckduckgo.com/lite/?q=` + encodeURIComponent(query) + `">
-    </iframe>
-    `;
-
-    var cursorY=0;
-    var step=70;
-
-    document.onkeydown=function(e){
-        var code=e.keyCode||e.which;
-
-        if(code==40){ // DOWN
-            cursorY+=step;
-            document.getElementById("cursor").style.top=cursorY+"px";
-        }
-
-        if(code==38){ // UP
-            cursorY-=step;
-            if(cursorY<0) cursorY=0;
-            document.getElementById("cursor").style.top=cursorY+"px";
-        }
-
-        if(code==13){ // ENTER
-            var frame=document.getElementById("frame").contentWindow;
-            frame.scrollTo(0,cursorY);
-        }
-    };
+    mode="results";
+    document.getElementById("resultsFrame").style.display="block";
+    document.getElementById("resultsFrame").src=
+        "https://lite.duckduckgo.com/lite/?q="+encodeURIComponent(query);
 };
 
 rebuildElements();
