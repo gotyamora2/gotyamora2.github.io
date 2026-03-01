@@ -10,25 +10,19 @@ body{
     text-align:center;
     color:white;
 }
-input{
-    width:70%;
-    padding:15px;
-    font-size:22px;
-    margin-top:60px;
-}
-button{
+input, button{
     display:block;
-    width:60%;
-    margin:20px auto;
+    width:70%;
+    margin:25px auto;
     padding:20px;
     font-size:24px;
     background:#222;
     color:white;
-    border:2px solid #444;
+    border:3px solid #444;
 }
-button:focus{
-    border:2px solid red;
-    background:#333;
+.focused{
+    border:3px solid #ff0000 !important;
+    background:#333 !important;
 }
 </style>
 </head>
@@ -36,20 +30,73 @@ button:focus{
 
 <h1>Google TV Search</h1>
 
-<input id="q" placeholder="Введите запрос..." />
-
-<button onclick="searchGoogle()">🔎 Поиск Google</button>
-<button onclick="searchYoutube()">📺 Поиск YouTube</button>
+<input id="q" placeholder="Введите запрос..." tabindex="0">
+<button id="b1" tabindex="1">🔎 Поиск Google</button>
+<button id="b2" tabindex="2">📺 Поиск YouTube</button>
 
 <script>
+
+var elements = [
+    document.getElementById("q"),
+    document.getElementById("b1"),
+    document.getElementById("b2")
+];
+
+var index = 0;
+
+function updateFocus(){
+    for(var i=0;i<elements.length;i++){
+        elements[i].className="";
+    }
+    elements[index].className="focused";
+    elements[index].focus();
+}
+
+updateFocus();
+
+document.onkeydown = function(e){
+    e = e || window.event;
+
+    var code = e.keyCode || e.which;
+
+    // Down
+    if(code == 40){
+        index++;
+        if(index >= elements.length) index = 0;
+        updateFocus();
+        return false;
+    }
+
+    // Up
+    if(code == 38){
+        index--;
+        if(index < 0) index = elements.length - 1;
+        updateFocus();
+        return false;
+    }
+
+    // Enter
+    if(code == 13){
+        if(index == 1){
+            searchGoogle();
+        }
+        if(index == 2){
+            searchYoutube();
+        }
+        return false;
+    }
+};
+
 function searchGoogle(){
-    let q=document.getElementById("q").value;
-    location.href="https://www.google.com/search?q="+encodeURIComponent(q)+"&igu=1";
+    var q=document.getElementById("q").value;
+    window.location="https://www.google.com/search?q="+encodeURIComponent(q)+"&igu=1";
 }
+
 function searchYoutube(){
-    let q=document.getElementById("q").value;
-    location.href="https://piped.video/search?q="+encodeURIComponent(q);
+    var q=document.getElementById("q").value;
+    window.location="https://piped.video/search?q="+encodeURIComponent(q);
 }
+
 </script>
 
 </body>
