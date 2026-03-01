@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TV Duck Search</title>
+<title>TV Search</title>
 <style>
 body{
     background:#111;
@@ -17,23 +17,19 @@ body{
     border:2px solid #444;
     padding:10px;
 }
-.key{
+.key, .result{
     display:inline-block;
-    width:65px;
+    width:70px;
     margin:4px;
     padding:14px;
     background:#222;
     border:3px solid #444;
-    font-size:20px;
+    font-size:18px;
 }
 .result{
     display:block;
-    width:80%;
+    width:85%;
     margin:10px auto;
-    padding:16px;
-    font-size:20px;
-    background:#222;
-    border:3px solid #444;
 }
 .focused{
     border:3px solid red !important;
@@ -43,14 +39,10 @@ body{
 </head>
 <body>
 
-<h2>DuckDuckGo TV Search</h2>
-
+<h2>TV Search</h2>
 <div id="query"></div>
-
 <div id="keyboard"></div>
-
 <div class="result" id="searchBtn">SEARCH</div>
-
 <div id="results"></div>
 
 <script>
@@ -60,7 +52,6 @@ var index=0;
 var elements=[];
 
 var keys="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 var keyboard=document.getElementById("keyboard");
 
 for(var i=0;i<keys.length;i++){
@@ -76,27 +67,15 @@ for(var i=0;i<keys.length;i++){
     keyboard.appendChild(k);
 }
 
-var space=document.createElement("div");
-space.className="key";
-space.innerHTML="_";
-space.onclick=function(){ query+=" "; updateQuery(); };
-keyboard.appendChild(space);
-
-var back=document.createElement("div");
-back.className="key";
-back.innerHTML="←";
-back.onclick=function(){ query=query.slice(0,-1); updateQuery(); };
-keyboard.appendChild(back);
-
 function updateQuery(){
     document.getElementById("query").innerHTML=query;
 }
 
 function rebuildElements(){
     elements=[];
-    var keys=document.getElementsByClassName("key");
-    for(var i=0;i<keys.length;i++) elements.push(keys[i]);
-    elements.push(document.getElementById("searchBtn"));
+    var all=document.querySelectorAll(".key, .result");
+    for(var i=0;i<all.length;i++) elements.push(all[i]);
+    index=0;
     updateFocus();
 }
 
@@ -109,11 +88,8 @@ function updateFocus(){
     }
 }
 
-rebuildElements();
-
 document.onkeydown=function(e){
     var code=e.keyCode||e.which;
-
     var UP=38,DOWN=40,LEFT=37,RIGHT=39,ENTER=13;
     var TV_UP=29460,TV_DOWN=29461,TV_ENTER=29443;
 
@@ -129,9 +105,47 @@ document.onkeydown=function(e){
 };
 
 document.getElementById("searchBtn").onclick=function(){
+
     if(query.length==0) return;
-    window.location="https://lite.duckduckgo.com/lite/?q="+encodeURIComponent(query);
+
+    var results=document.getElementById("results");
+    results.innerHTML="Loading...";
+
+    var xhr=new XMLHttpRequest();
+    xhr.onreadystatechange=function(){
+        if(xhr.readyState==4 && xhr.status==200){
+
+            results.innerHTML="";
+            var parser=new DOMParser();
+            var xml=parser.parseFromString(xhr.responseText,"text/xml");
+            var items=xml.getElementsByTagName("item");
+
+            for(var i=0;i<items.length && i<8;i++){
+
+                var title=items[i].getElementsByTagName("title")[0].textContent;
+                var link=items[i].getElementsByTagName("link")[0].textContent;
+
+                var btn=document.createElement("div");
+                btn.className="result";
+                btn.innerHTML=title;
+                btn.onclick=(function(url){
+                    return function(){
+                        window.location=url;
+                    }
+                })(link);
+
+                results.appendChild(btn);
+            }
+
+            rebuildElements();
+        }
+    };
+
+    xhr.open("GET","https://www.bing.com/search?format=rss&q="+encodeURIComponent(query),true);
+    xhr.send();
 };
+
+rebuildElements();
 
 </script>
 
