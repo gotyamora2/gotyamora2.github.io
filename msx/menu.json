@@ -1,15 +1,4 @@
 {
-  "type": "list",
-  "headline": "TV SEARCH",
-  "template": {
-    "type": "default",
-    "layout": "0,0,1,1",
-    "area": "0,0,12,3"
-  },
-  "items": [
-    {
-      "title": "Google TV Search",
-      "action": "link:https://gotyamora2.github.io/msx/google.html"
-    }
-  ]
+  "title": "TV Search",
+  "action": "link:https://gotyamora2.github.io/msx/tvsearch.html"
 }
