@@ -1,15 +1,32 @@
 {
   "type": "list",
-  "headline": "TEST MENU",
+  "headline": "GOOGLE TV PORTAL",
   "template": {
     "type": "default",
     "layout": "0,0,1,1",
-    "area": "0,0,12,3"
+    "area": "0,0,12,3",
+    "color": "msx-glass"
   },
   "items": [
     {
-      "title": "Google",
-      "action": "link:https://google.com"
+      "title": "🔎 Google Mobile",
+      "action": "link:https://www.google.com/?igu=1"
+    },
+    {
+      "title": "📷 Google Images",
+      "action": "link:https://www.google.com/imghp?igu=1"
+    },
+    {
+      "title": "📰 Google News",
+      "action": "link:https://news.google.com/?hl=ru&gl=UA&ceid=UA:ru"
+    },
+    {
+      "title": "📺 YouTube TV",
+      "action": "link:https://www.youtube.com/tv#/"
+    },
+    {
+      "title": "🌍 Wikipedia",
+      "action": "link:https://ru.m.wikipedia.org"
     }
   ]
 }
