@@ -30,9 +30,9 @@ input, button{
 
 <h1>Google TV Search</h1>
 
-<input id="q" placeholder="Введите запрос..." tabindex="0">
-<button id="b1" tabindex="1">🔎 Поиск Google</button>
-<button id="b2" tabindex="2">📺 Поиск YouTube</button>
+<input id="q" placeholder="Введите запрос..." />
+<button id="b1">🔎 Поиск Google</button>
+<button id="b2">📺 Поиск YouTube</button>
 
 <script>
 
@@ -54,29 +54,35 @@ function updateFocus(){
 
 updateFocus();
 
-document.onkeydown = function(e){
-    e = e || window.event;
+function handleKey(code){
 
-    var code = e.keyCode || e.which;
+    // Samsung Smart TV keycodes
+    var KEY_UP = 38;
+    var KEY_DOWN = 40;
+    var KEY_ENTER = 13;
 
-    // Down
-    if(code == 40){
+    // дополнительные коды Samsung
+    var TV_UP = 29460;
+    var TV_DOWN = 29461;
+    var TV_LEFT = 4;
+    var TV_RIGHT = 5;
+    var TV_ENTER = 29443;
+
+    if(code == KEY_DOWN || code == TV_DOWN){
         index++;
         if(index >= elements.length) index = 0;
         updateFocus();
         return false;
     }
 
-    // Up
-    if(code == 38){
+    if(code == KEY_UP || code == TV_UP){
         index--;
         if(index < 0) index = elements.length - 1;
         updateFocus();
         return false;
     }
 
-    // Enter
-    if(code == 13){
+    if(code == KEY_ENTER || code == TV_ENTER){
         if(index == 1){
             searchGoogle();
         }
@@ -85,8 +91,17 @@ document.onkeydown = function(e){
         }
         return false;
     }
+}
+
+document.onkeydown = function(e){
+    e = e || window.event;
+    var code = e.keyCode || e.which;
+    return handleKey(code);
 };
 
+</script>
+
+<script>
 function searchGoogle(){
     var q=document.getElementById("q").value;
     window.location="https://www.google.com/search?q="+encodeURIComponent(q)+"&igu=1";
@@ -96,7 +111,6 @@ function searchYoutube(){
     var q=document.getElementById("q").value;
     window.location="https://piped.video/search?q="+encodeURIComponent(q);
 }
-
 </script>
 
 </body>
