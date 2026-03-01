@@ -1,6 +1,5 @@
 {
   "name": "MY_MSX",
   "version": "1.0",
-  "dictionary": "https://gotyamora2.github.io/msx/dictionary.json",
-  "parameter": "menu:https://gotyamora2.github.io/msx/menu.txt"
+  "parameter": "menu:https://raw.githubusercontent.com/gotyamora2/gotyamora2.github.io/main/msx/menu.json"
 }
